@@ -1,0 +1,182 @@
+---
+title: "Homework 2"
+author: "Cesar Dao (cad4837)"
+date: "2024-01-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, include=FALSE}
+profs = read.csv("profs.csv")
+library(ggplot2)
+library(tidyverse)
+library(scales)
+```
+
+[Repository Link](https://github.com/cedaco/SDS315_HW2) 
+
+# Problem 1
+
+## Part A
+```{r, echo = FALSE}
+ggplot(profs) + geom_histogram(aes(x = eval), col = "black", bins = 30) + labs(title = "Overall Distribution of Professor Evaluation Scores", y = "Count", x = "Evaluation Score")
+```
+This graph displays the amount of times each professor evaluation score was given by students in a survey. The maximum evaluation score that can be given is 5. The distribution is skewed to the left, meaning there appears to be more overall positive ratings than negative ratings.
+
+## Part B
+```{r, echo = FALSE}
+ggplot(profs) + geom_boxplot(aes(x = native, y = eval), fill = "grey") + labs(title = "Prof. Evaluation Scores for Native and Non-Native English Speakers", x = "Native Speaker", y = "Evaluation Score")
+```
+These box plots compare the evaluation scores for professors, grouped by whether they are or are not native English speakers. Overall (excluding some outliers), native English speakers appear to have more positive ratings than non-native English speakers. This is probably because the survey was conducted in the United States, where English is the primary language, meaning that a professor who can speak good English will be able to be better understood by students; native English speakers tend to speak better English than Non-Native speakers.
+
+## Part C
+```{r, echo = FALSE}
+ggplot(profs) + geom_histogram(aes(x = eval), col = "black", bins = 30) + labs(title = "Distribution of Professor Evaluation Scores, Grouped By Gender", y = "Count", x = "Evaluation Score") + facet_grid(.~gender)
+```
+This graph analyzes evaluation scores based on the gender of the professor. It appears that while both distributions are skewed left, male professors seem to have more positive ratings than female professors. This is most likely due to the fact that more students submitted course evaluations for male professors than for female professors.
+
+## Part D
+```{r, echo = FALSE}
+ggplot(profs) + geom_point(aes(x = beauty, y = eval)) + labs(title = "Course Evaluations With Respect to Professor Attractiveness", x = "Attractiveness Score", y = "Evaluation Score")
+
+round(cor(profs$beauty, profs$eval), 2)
+```
+This graph analyzes whether the attractiveness of a professor's attractiveness affects the evaluation score that they receive. Attractiveness is ranked on a scale that is centered at 0, meaning any score under 0 means the professor is below average in terms of looks and any score above 0 means that a professor is above average in terms of looks. There appears to be little-to no correlation between these variables, with a correlation score of around 0.19.
+
+# Problem 2
+
+## Part A
+```{r, echo = FALSE}
+bikeshare = read.csv("bikeshare.csv")
+
+bikeshare_by_hour = bikeshare %>%
+  group_by(hr) %>%
+  summarize(avg_rentals = mean(total)) %>%
+  round(1)
+
+ggplot(bikeshare_by_hour) + geom_line(aes(x = hr, y = avg_rentals)) + labs(title = "Average Amount Bike Rentals for Each Hour of the Day", x = "Hour of the Day", y = "Average Bike Rentals (Amount)")
+```
+This line plot shows the average amount of bike rentals per hour over the course of an entire day in Washington DC. At the very start of the day there are not many bike rentals, but the average amount of these rentals quickly rises around 8:00 AM, which is when most people start commuting to work for their 9-5 job. There is a noticeable drop off in average bike rentals during typical working hours. Interestingly, there is a slight increase in rentals around mid-day, followed by a slight drop off in the subsequent hour, which may mean that some people use bikes during their lunch breaks. Peak bike usage appears to occur at around 5:00 PM, which could mean that many people use bikes to commute back to their homes after work. Through the afternoon and night, the average amount of bike rentals drops pretty drastically. Overall, biking seems to be a popular mode of transport in a city like Washington DC, where it may be inconvenient to use a car due to heavy traffic, to get from point A to point B.
+
+## Part B
+```{r, echo = FALSE}
+bikeshare_by_hour = bikeshare %>%
+  group_by(hr, workingday) %>%
+  summarize(avg_rentals = mean(total), .groups = 'keep') %>%
+  round(1)
+
+ggplot(bikeshare_by_hour) + geom_line(aes(x = hr, y = avg_rentals)) + labs(title = "The Amount Bike Rentals for Each Hour of the Day, Based on Day Type ", x = "Hour of the Day", y = "Average Bike Rentals (Amount)") + facet_grid(.~workingday)
+```
+These graphs show the distribution of the average amount of bike rentals per hour, grouped by the type of day. Day type "0" denotes days that are weekends and/or work holidays. During those types of days, there seems to be a more steady increase and decrease in the average amount of bikes rented throughout the day. That is probably because work schedules do not influence when bikes are rented during these days, and they are mostly used for leisure. Day type "1" denotes normal work days. Those days are characterized by sharp increases and decreases of average bike rentals. Peak bike rental times appear to be during the hours people start and leave from work. There are also more bikes rented overall. From these graphs, we can infer that the typr of day greatly influences the usage, demand, and usage times of bikes.
+
+## Part C
+```{r, echo = FALSE}
+bikeshare_at_9 = bikeshare %>%
+  filter(hr == 9) %>%
+  group_by(workingday, weathersit) %>%
+  summarize(avg_rentals = mean(total), .groups = 'keep') %>%
+  round(1)
+
+ggplot(bikeshare_at_9) + geom_col(aes(x = weathersit, y = avg_rentals), col = "black") + labs(title = "Average Bike Rentals at 9AM, Based on Weather Conditions & Day Type", x = "Weather Conditions", y = "Average Bike Rentals (Amount)") + facet_grid(.~workingday)
+```
+These plots show the amount of average bike rentals at 9 AM based on weather conditions and type of day. Day type "0" denotes weekends and/or work holidays and day type "1" denotes normal work days. Weather condition "1" denotes a day with mostly clear skies, "2" denotes somewhat misty, cloudy days, "3" denotes snowy, somewhat rainy, or stormy rains, and finally "4" denotes hail and heavy rain, but there were none of these conditions recorded at 9 AM. It appears that more bikes are rented during work days than non work days; it also seems that as weather conditions worsen, less bikes are rented. Overall, the amount of bike rentals in the morning seems to be fairly reliant on the type of day and weather conditions.
+
+# Problem 3
+
+## Part 1
+```{r, echo = FALSE}
+capmetro = read.csv("capmetro_UT.csv")
+
+cap_summary = capmetro %>%
+  group_by(day_of_week, hour_of_day, month) %>%
+  summarize(avg_board = mean(boarding), .groups = 'keep') 
+
+ggplot(cap_summary) + geom_line(aes(x = hour_of_day, y = avg_board, color = month)) + 
+  facet_wrap(.~factor(day_of_week, levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"))) +
+  labs(title = "Average Boarding Per Hour During Autumn For Each Day", x="Hour of Day", y="Average Amount of Boarders")
+  
+```
+These graphs are grouped by each day of the week, and show the average amount of bus riders per hour of the day for September, October, and November on the Capital Metro. Peak riding times seem to be pretty similar among most days, excluding Saturday and Sunday, which have noticeably lower ridership by UT students, which is most likely due to the fact that school is closed during those days. However, Mondays during September have less ridership, most likely due to the fact that labor day occurs in September. The same observation can be seen for Wednesday, Thursday, and Friday in November due to the thanksgiving holidays.
+
+## Part 2
+```{r, echo = FALSE}
+cap_summary = capmetro %>%
+  group_by(boarding, temperature, hour_of_day, weekend)
+
+ggplot(cap_summary) + geom_point(aes(x = temperature, y = boarding, color = weekend), size = 0.1) +
+  facet_wrap(.~hour_of_day, scales = "free_y") + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))  +
+  coord_cartesian(ylim = c(0, 300)) + labs(title = "Boardings Vs Temperature for Fall on Weekdays/Weekends, Grouped By Hour", y = "Average Amount of Boarders", x = "Temperature (Degrees Fahrenheit)")
+  
+```
+These graphs show the distribution of boardings with respect to temperature on weekdays vs weekends for each hour of the day in which Capital Metro operates. The temperature does not seem to affect the boarding tendencies of UT students on the Capital Metro. This is probably because the buses run every day regardless of the temperature; many students are also completely reliant on the buses for going from point A to point B.
+
+# Problem 4
+
+## Part A
+```{r, echo = FALSE}
+billboard = read.csv("billboard.csv")
+
+top_songs = billboard %>%
+  group_by(performer, song) %>%
+  summarize(count = n(), .groups = 'keep') %>%
+  ungroup()
+
+top_songs = top_songs %>%
+  arrange(desc(count))
+
+top_10_songs = top_songs %>%
+  slice_head(n = 10)
+
+print(top_10_songs)
+
+```
+This table displays the 10 songs that have charted for the most amount of weeks on the Billboard Top 100 list. The most successful song in Billboard history appears to be Radioactive by Imagine Dragons, charting for a total of 87 weeks. This means that Radioactive had charted for around 1.5 years.
+
+
+## Part B
+
+```{r, echo = FALSE}
+filtered_years = billboard %>%
+  filter(between(year, 1959, 2020))
+
+songs = filtered_years %>%
+  group_by(year, song) %>%
+  summarize(count = n(), .groups = 'keep')%>%
+  ungroup()
+
+unique <- songs %>%
+  group_by(year) %>%
+  summarise(unique_songs = n_distinct(song), .groups = 'keep') %>%
+  ungroup()
+
+ggplot(unique) + geom_line(aes(x = year, y = unique_songs))  +
+  labs(title = "Musical Diversity of Billboard Top 100 Over the Years", x = "Year", y = "Number of Unique Songs") 
+
+```
+This graph displays the amount of unique Billboard Top 100 hits from 1959 to 2020. There were a lot of new songs entering the charts until the late 1960's, however, that soon changed. There would be a decrease in new songs entering the charts until the early 2000's. There was a steep increase in new songs entering the charts until the early 2010's; there would soon be another, even-sharper increase going into 2020. The amount of new songs entering the charts in 2020 rivals the amount seen in the 1960's, which I presume is due to the COVID pandemic and a rising popularity of music-based social media apps such as TikTok.
+
+## Part C
+```{r, echo = FALSE}
+top_songs = billboard %>%
+  group_by(performer, song) %>%
+  summarize(count = n(), .groups = 'keep') %>%
+  ungroup()
+
+ten_week_hits = top_songs %>%
+  filter(count >= 10)
+
+ten_week_hits_amount <- ten_week_hits %>%
+  group_by(performer) %>%
+  summarise(count = n(), .groups = 'keep') %>%
+  ungroup()
+
+top_artists = ten_week_hits_amount%>%
+  filter(count>=30)
+
+ggplot(top_artists) + geom_col(aes(x = performer, y = count)) + labs(title = "Distribution of Ten-Week Hits for Artists With Over Thirty Ten-Week Hits",x = "Artist", y = " Amount of Ten-Week Hits") + theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+```
+This plot displays the 19 artists who have produced 30 or more Billboard Top 100 hit that have stayed on that chart for 10 or more weeks. Of the 19 of these artists, the most successful appears to be Elton John, with 52 of these hits. I feel like this graph is very good at displaying those artists who have surpassed super stardom. I found it very interesting that there were a lot of older artists in this category since streaming services such as Spotify were not prevelant in their era.
